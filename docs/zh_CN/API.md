@@ -60,7 +60,7 @@ s3Client = Minio('s3.amazonaws.com',
 | `access_key`  | _string_  | 对象存储的Access key。（如果是匿名访问则可以为空）。  |
 | `secret_key` | _string_  |  对象存储的Secret key。（如果是匿名访问则可以为空）。 |
 | `secure`  |_bool_   | 设为`True`代表启用HTTPS。 (默认是`True`)。  |
-| `region`  |_string_ | 设置该值以覆盖自动发现存储桶region。 （可选，默认值是`None`）。 |
+| `region`  |_string_ | 设置该值以覆盖自动发现存储桶目录。 （可选，默认值是`None`）。 |
 | `http_client` |_urllib3.poolmanager.PoolManager_ | 设置该值以使用自定义的http client，而不是默认的http client。（可选，默认值是`None`）。 |
 
 __示例__
@@ -127,8 +127,9 @@ s3Client = Minio('s3.amazonaws.com',
 | | |eu-west-1 |
 | | | eu-central-1|
 | | | ap-southeast-1|
-| | | ap-northeast-1|
 | | | ap-southeast-2|
+| | | ap-northeast-1|
+| | | ap-northeast-2|
 | | | sa-east-1|
 | | | cn-north-1|
 
@@ -145,7 +146,7 @@ except ResponseError as err:
 ### list_buckets()
 列出所有的存储桶。
 
-参数
+__参数__
 
 |返回值   | 类型   |描述   |
 |:---|:---|:---|
@@ -165,7 +166,7 @@ for bucket in buckets:
 ### bucket_exists(bucket_name)
 检查存储桶是否存在。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -184,7 +185,7 @@ except ResponseError as err:
 ### remove_bucket(bucket_name)
 删除存储桶。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -203,7 +204,7 @@ except ResponseError as err:
 ### list_objects(bucket_name, prefix=None, recursive=False)
 列出存储桶中所有对象。
 
-参数
+__参数__
 
 | 参数  |  类型 | 描述  |
 |:---|:---|:---|
@@ -225,8 +226,7 @@ __返回值__
 |``object.size`` | _int_ | 对象的大小。|
 |``object.etag`` | _string_ | 对象的etag值。|
 |``object.last_modified`` |_datetime.datetime_ | 最后修改时间。|
-|``object.content_type`` | _string_ | 对象的content-type。|
-|``object.metadata``     |  _dict_  | 对象的其它元数据。|
+
 
 
 __示例__
@@ -244,7 +244,7 @@ for obj in objects:
 ### list_objects_v2(bucket_name, prefix=None, recursive=False)
 使用V2版本API列出一个存储桶中的对象。
 
-参数
+__参数__
 
 | 参数  |  类型 | 描述  |
 |:---|:---|:---|
@@ -266,8 +266,7 @@ __返回值__
 |``object.size`` | _int_ | 对象的大小。|
 |``object.etag`` | _string_ | 对象的etag值。|
 |``object.last_modified`` |_datetime.datetime_ | 最后修改时间。|
-|``object.content_type`` | _string_ | 对象的content-type。|
-|``object.metadata``     |  _dict_  | 对象的其它元数据。|
+、
 
 
 __示例__
@@ -285,7 +284,7 @@ for obj in objects:
 ### list_incomplete_uploads(bucket_name, prefix, recursive=False)
 列出存储桶中未完整上传的对象。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -318,54 +317,75 @@ for obj in uploads:
 ```
 
 <a name="get_bucket_policy"></a>
-### get_bucket_policy(bucket_name, prefix)
+### get_bucket_policy(bucket_name)
 获取存储桶的当前策略。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
 |``bucket_name``   | _string_  |存储桶名称。|
-|``prefix``   |_string_    |对象的名称前缀。 |
 
 __返回值__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
-|``Policy``   | _minio.policy.Policy_   |Policy枚举：Policy.READ_ONLY，Policy.WRITE_ONLY，Policy.READ_WRITE或 Policy.NONE。   |
+|``Policy``   | _string_   |JSON形式的存储桶策略   |
 
 __示例__
 
 
 ```py
 # Get current policy of all object paths in bucket that begin with my-prefixname.
-policy = minioClient.get_bucket_policy('mybucket',
-                                       'my-prefixname')
+policy = minioClient.get_bucket_policy('mybucket')
 print(policy)
 ```
 
 <a name="set_bucket_policy"></a>
-### set_bucket_policy(bucket_name, prefix, policy)
+### set_bucket_policy(bucket_name, policy)
 
-给指定的存储桶设置存储桶策略。如果`prefix`不为空，则该存储桶策略仅对匹配这个指定前缀的对象生效。
+为指定的存储桶设置策略。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
 |``bucket_name``   | _string_  |存储桶名称。|
-|``prefix``   |_string_ | 对象的名称前缀。 |
-|``Policy``   | _minio.policy.Policy_   |Policy枚举：Policy.READ_ONLY，Policy.WRITE_ONLY，Policy.READ_WRITE或 Policy.NONE。   |
+|``Policy``   | _string_   |JSON形式的存储桶策略   |
 
 
 __示例__
 
 
 ```py
-# Set policy Policy.READ_ONLY to all object paths in bucket that begin with my-prefixname.
-minioClient.set_bucket_policy('mybucket',
-                              'my-prefixname',
-                              Policy.READ_ONLY)
+# Set bucket policy to read only to all object paths in bucket.
+policy_read_only = {"Version":"2012-10-17",
+                    "Statement":[
+                        {
+                        "Sid":"",
+                        "Effect":"Allow",
+                        "Principal":{"AWS":"*"},
+                        "Action":"s3:GetBucketLocation",
+                        "Resource":"arn:aws:s3:::mybucket"
+                        },
+                        {
+                        "Sid":"",
+                        "Effect":"Allow",
+                        "Principal":{"AWS":"*"},
+                        "Action":"s3:ListBucket",
+                        "Resource":"arn:aws:s3:::mybucket"
+                        },
+                        {
+                        "Sid":"",
+                        "Effect":"Allow",
+                        "Principal":{"AWS":"*"},
+                        "Action":"s3:GetObject",
+                        "Resource":"arn:aws:s3:::mybucket/*"
+                        }
+                    ]}
+
+
+minioClient.set_bucket_policy('mybucket', policy_read_only)
 ```
 
 <a name="get_bucket_notification"></a>
@@ -373,7 +393,7 @@ minioClient.set_bucket_policy('mybucket',
 
 获取存储桶上的通知配置。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -400,7 +420,7 @@ notification = minioClient.get_bucket_notification('mybucket')
 
 给存储桶设置通知配置。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -436,7 +456,7 @@ notification = minioClient.get_bucket_notification('mybucket')
       * __FilterRules__ (list) -- 指定过滤规则标准的容器列表。
         * (dict) -- 键值对的dictionary容器，指定单个的过滤规则。
           * __Name__ (string) -- 对象的键名称，值为“前缀”或“后缀”。
-          * __Value__ (string) -- 指定规则适用的值。
+          * __Value__ (string) -- 指定规则适用的前缀/后缀值。
 
 
 没有返回值。如果目标服务报错，会抛出`ResponseError`。如果有验证错误，会抛出`InvalidArgumentError`或者`TypeError`。输入参数的configuration不能为空 - 为了删除存储桶上的通知配置，参考`remove_all_bucket_notification()` API。
@@ -513,7 +533,7 @@ except (ArgumentError, TypeError) as err:
 
 删除存储桶上配置的所有通知。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -536,7 +556,7 @@ minioClient.remove_all_bucket_notification('mybucket')
 
 当通知发生时，产生事件，调用者需要遍历读取这些事件。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -563,19 +583,21 @@ for event in events:
 ### get_object(bucket_name, object_name, request_headers=None)
 下载一个对象。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
 |``bucket_name``   |_string_   |存储桶名称。   |
 |``object_name``   |_string_   |对象名称。  |
 |``request_headers`` |_dict_   |额外的请求头信息 （可选，默认为None）。  |
+|``sse`` |_dict_   |服务端加密头文件（可选，默认）Server-Side Encryption headers (optional, defaults to None).   |
+
 
 __返回值__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
-|``object``   | _urllib3.response.HTTPResponse_   |http streaming reader。  |
+|``object``   | _urllib3.response.HTTPResponse_   |http流读取器。  |
 
 __示例__
 
@@ -593,9 +615,9 @@ except ResponseError as err:
 
 <a name="get_partial_object"></a>
 ### get_partial_object(bucket_name, object_name, offset=0, length=0, request_headers=None)
-下载一个对象的指定区间的字节数组。
+下载一个对象的指定区间的字节。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -604,12 +626,13 @@ except ResponseError as err:
 |``offset``   |_int_ |``offset`` 是起始字节的位置   |
 |``length``   |_int_ |``length``是要读取的长度 (可选，如果无值则代表读到文件结尾)。  |
 |``request_headers`` |_dict_   |额外的请求头信息 （可选，默认为None）。  |
+|``sse`` |_dict_   |服务端加密头。（可选，默认为无）。   |
 
 __返回值__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
-|``object``   | _urllib3.response.HTTPResponse_   |http streaming reader。  |
+|``object``   | _urllib3.response.HTTPResponse_   |http流读取器。  |
 
 __示例__
 
@@ -626,9 +649,9 @@ except ResponseError as err:
 
 <a name="fget_object"></a>
 ### fget_object(bucket_name, object_name, file_path, request_headers=None)
-下载并将文件保存到本地。
+下载并将对象作为文件保存到本地文件系统中。
 
-参数
+__参数__
 
 
 |参数   | 类型   |描述   |
@@ -664,11 +687,11 @@ except ResponseError as err:
 
 <a name="copy_object"></a>
 ### copy_object(bucket_name, object_name, object_source, copy_conditions=None, metadata=None)
- 拷贝对象存储服务上的源对象到一个新对象。
+ 复制对象存储服务上的源对象到一个新对象。
 
 注意：本API支持的最大文件大小是5GB。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -676,6 +699,9 @@ except ResponseError as err:
 |``object_name``   |_string_    | 新对象的名称。  |
 |``object_source``   |_string_   |要拷贝的源对象的存储桶名称+对象名称。 |
 |``copy_conditions`` |_CopyConditions_ | 拷贝操作需要满足的一些条件（可选，默认为None）。 |
+|``source_sse`` |_dict_   |源对象的服务端加密头（可选，默认为否）。  |
+|``sse`` |_dict_   |目的对象的服务端加密头Server（可选，默认为否）。  |
+|``metadata`` |_dict_ |用户定义的与目标对象一起复制的元数据(可选，默认为无)。  |
 
 
 __示例__
@@ -715,12 +741,12 @@ except ResponseError as err:
 ```
 
 <a name="put_object"></a>
-### put_object(bucket_name, object_name, data, length, content_type='application/octet-stream', metadata=None)
-添加一个新的对象到对象存储服务。
+### put_object(bucket_name, object_name, data, length, content_type='application/octet-stream', metadata=None,  progress=None, part_size=5*1024*1024)
+添加一个新的对象到对象存储服务。如果提供的元数据的键不是有效/支持的元数据名字中的一个，元数据信息将以在原始原始元数据键名前添加前缀“X-Amz-Meta-”的方式保存下来。
 
 注意：本API支持的最大文件大小是5TB。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -728,14 +754,17 @@ except ResponseError as err:
 |``object_name``   |_string_    |对象名称。   |
 |``data``   |_io.RawIOBase_   |任何实现了io.RawIOBase的python对象。 |
 |``length``   |_int_   |对象的总长度。   |
-|``content_type``   |_string_ | 对象的Content type。（可选，默认是“application/octet-stream”）。   |
+|``content_type``   |_string_ | 对象的Content type。（可选，默认是“application/octet-stream”）。 |
 |``metadata``   |_dict_ | 其它元数据。（可选，默认是None）。 |
+| ``sse``  | _dict_ | 服务端加密数据头（可选的，默认是None)。 |
+| ``progress``  | _subclass_of_threading_ | 一个进度对象 (可选， 默认为None)。 |
+| ``part_size`` | _int_  | 多部分的大小   |
 
 __返回值__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
-|``etag``|_string_  |对象的etag值。  |
+|``etag``|_string_  |由服务器计算的对象etag值。  |
 
 __示例__
 
@@ -763,10 +792,11 @@ except ResponseError as err:
 ```
 
 <a name="fput_object"></a>
-### fput_object(bucket_name, object_name, file_path, content_type='application/octet-stream', metadata=None)
-通过文件上传到对象中。
+### fput_object(bucket_name, object_name, file_path, content_type='application/octet-stream', metadata=None, progress=None, part_size=5*1024*1024)
 
-参数
+将文件和`file_path`的内容上传到`object_name`中。如果提供的元数据键不是有效/支持元数据名字中的其中一个，元数据信息将以在原始原始元数据键名前添加前缀“X-Amz-Meta-”的方式保存下来。
+
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -775,12 +805,16 @@ except ResponseError as err:
 |``file_path``   |_string_ |本地文件的路径，会将该文件的内容上传到对象存储服务上。 |
 |``content_type``   |_string_ | 对象的Content type（可选，默认是“application/octet-stream”）。 |
 |``metadata``   |_dict_ | 其它元数据（可选，默认是None）。 |
+| ``sse``  | _dict_ | 服务端加密数据头（可选的，默认是None)。 |
+| ``progress``  | _subclass_of_threading_ | 一个进度对象 (可选， 默认为None)。 |
+| ``part_size`` | _int_  | 多部分的大小   |
+
 
 __返回值__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
-|``etag``|_string_  |对象的etag值。  |
+|``etag``|_string_  |由服务器计算的对象etag值。  |
 
 __示例__
 
@@ -805,14 +839,15 @@ except ResponseError as err:
 
 <a name="stat_object"></a>
 ### stat_object(bucket_name, object_name)
-获取对象的元数据。
+获取对象的元数据。如果提供的元数据键不是有效/支持元数据名字中的其中一个，元数据信息将以在原始原始元数据键名前添加前缀“X-Amz-Meta-”的方式保存下来。所以，如果由stat_object API返回的元数据将会以在原始元数据的键名前添加`X-Amz-Meta-`的方式显示。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
 |``bucket_name``   |_string_  |存储桶名称。   |
 |``object_name``   |_string_  |名称名称。  |
+|``sse`` |_dict_   |服务端加密对象头 (可选, 默认为None)。   |
 
 __返回值__
 
@@ -844,7 +879,7 @@ except ResponseError as err:
 ### remove_object(bucket_name, object_name)
 删除一个对象。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -866,18 +901,18 @@ except ResponseError as err:
 ### remove_objects(bucket_name, objects_iter)
 删除存储桶中的多个对象。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
 |``bucket_name``   | _string_  | 存储桶名称。   |
-|``objects_iter``   | _list_ , _tuple_ or _iterator_ | 多个对象名称的列表数据。   |
+|``objects_iter``   | _list_ , _tuple_ or _iterator_ | 包含要删除的多个对象名称字符串的列表数据。 |
 
 __返回值__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
-|``delete_error_iterator`` | _iterator_ of _MultiDeleteError_ instances | 删除失败的错误信息iterator,格式如下： |
+|``delete_error_iterator`` | _iterator_ of _MultiDeleteError_ instances | 像下面描述的删除失败错误信息的延迟迭代器（lazy iterator） |
 
 _注意_
 
@@ -912,7 +947,7 @@ except ResponseError as err:
 ### remove_incomplete_upload(bucket_name, object_name)
 删除一个未完整上传的对象。
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -934,10 +969,11 @@ except ResponseError as err:
 
 <a name="presigned_get_object"></a>
 ### presigned_get_object(bucket_name, object_name, expiry=timedelta(days=7))
-生成一个用于HTTP GET操作的presigned URL。浏览器/移动客户端可以在即使存储桶为私有的情况下也可以通过这个URL进行下载。这个presigned URL可以有一个过期时间，默认是7天。
+
+生成一个用于HTTP GET操作的presigned URL。浏览器/移动客户端可以在即使存储桶为私有的情况下通过这个URL直接下载对象。这个presigned URL可以有一个过期时间(以秒为单位)，之后不再有效。默认的期限是7天。
 
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -945,6 +981,8 @@ except ResponseError as err:
 |``object_name``   |_string_    |对象名称。   |
 |``expiry``   | _datetime.datetime_    |过期时间，单位是秒，默认是7天。    |
 |``response_headers``   | _dictionary_    |额外的响应头 （比如：`response-content-type`、`response-content-disposition`）。     |
+|``request_date``   | _datetime.datetime_    |可选的日期时间，用于指定不同的请求日期。期限与请求时间相关。默认日期是当前时间。     |
+
 
 __示例__
 
@@ -962,12 +1000,12 @@ except ResponseError as err:
 
 <a name="presigned_put_object"></a>
 ### presigned_put_object(bucket_name, object_name, expires=timedelta(days=7))
-生成一个用于HTTP PUT操作的presigned URL。浏览器/移动客户端可以在即使存储桶为私有的情况下也可以通过这个URL进行上传。这个presigned URL可以有一个过期时间，默认是7天。
+生成一个用于HTTP PUT操作的presigned URL。浏览器/移动客户端可以在即使存储桶为私有的情况下也可以通过这个URL进行上传。这个presigned URL可以有一个过期时间（一秒为单位），之后不再有效，默认是7天。
 
 注意：你可以通过只指定对象名称上传到S3。
 
 
-参数
+__参数__
 
 |参数   | 类型   |描述   |
 |:---|:---|:---|
@@ -993,7 +1031,7 @@ except ResponseError as err:
 
 <a name="presigned_post_policy"></a>
 ### presigned_post_policy(PostPolicy)
-允许给POST操作的presigned URL设置策略条件。这些策略包括比如，接收对象上传的存储桶名称，名称前缀，过期策略。
+允许给POST操作的presigned URL设置策略条件。像接收对象上传的存储桶名称，名称前缀，过期策略等策略都是可以设置的。
 
 创建policy：
 
@@ -1028,7 +1066,7 @@ except ResponseError as err:
 ```
 
 
-使用`curl`POST你的数据：
+从命令行用`curl`来POST你的数据：
 
 
 ```py

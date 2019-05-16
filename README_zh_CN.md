@@ -16,6 +16,12 @@ MinIO Python Client SDK提供简单的API来访问任何与Amazon S3兼容的对
 pip install minio
 ```
 
+## 用pip3安装
+
+```sh
+pip3 install minio
+```
+
 ## 使用源码安装
 
 ```sh
@@ -46,7 +52,7 @@ minioClient = Minio('play.min.io:9000',
 ```
 
 
-## 示例-文件上传
+## 快速入门示例-文件上传
 本示例连接到一个MinIO对象存储服务，创建一个存储桶并上传一个文件到存储桶中。
 
 我们在本示例中使用运行在 [https://play.min.io:9000](https://play.min.io:9000) 上的MinIO服务，你可以用这个服务来开发和测试。示例中的访问凭据是公开的。
@@ -95,7 +101,7 @@ mc ls play/maylogs/
 完整的API文档在这里。
 * [完整API文档](https://docs.min.io/docs/python-client-api-reference)
 
-### API文档 : 操作存储桶
+### API文档 : 存储桶操作
 
 * [`make_bucket`](https://docs.min.io/docs/python-client-api-reference#make_bucket)
 * [`list_buckets`](https://docs.min.io/docs/python-client-api-reference#list_buckets)
@@ -105,24 +111,24 @@ mc ls play/maylogs/
 * [`list_objects_v2`](https://docs.min.io/docs/python-client-api-reference#list_objects_v2)
 * [`list_incomplete_uploads`](https://docs.min.io/docs/python-client-api-reference#list_incomplete_uploads)
 
-### API文档 : 存储桶策略
+### API文档 : 存储桶策略操作
 
 * [`get_bucket_policy`](https://docs.min.io/docs/python-client-api-reference#get_bucket_policy)
 * [`set_bucket_policy`](https://docs.min.io/docs/python-client-api-reference#set_bucket_policy)
 
-### API文档 : 存储桶通知
+### API文档 : 存储桶通知操作
 
 * [`set_bucket_notification`](https://docs.min.io/docs/python-client-api-reference#set_bucket_notification)
 * [`get_bucket_notification`](https://docs.min.io/docs/python-client-api-reference#get_bucket_notification)
 * [`remove_all_bucket_notification`](https://docs.min.io/docs/python-client-api-reference#remove_all_bucket_notification)
 * [`listen_bucket_notification`](https://docs.min.io/docs/python-client-api-reference#listen_bucket_notification)
 
-### API文档 : 操作文件对象
+### API文档 : 文件对象操作
 
 * [`fput_object`](https://docs.min.io/docs/python-client-api-reference#fput_object)
 * [`fget_object`](https://docs.min.io/docs/python-client-api-reference#fget_object)
 
-### API文档 : 操作对象
+### API文档 :对象操作
 
 * [`get_object`](https://docs.min.io/docs/python-client-api-reference#get_object)
 * [`put_object`](https://docs.min.io/docs/python-client-api-reference#put_object)
